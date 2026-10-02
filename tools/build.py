@@ -23,7 +23,7 @@ CREDIT = {
 BLURB = {
     'cc': ['Play with a Classic Controller plugged into the Wii Remote: left stick moves, right stick aims the cursor.',
            'A throw, B whistle, X dismiss, Y/- switch leader, ZL camera, L/R sprays, ZR swarm, D-pad camera.'],
-    'gc': ['Play with a GameCube controller in port 1 (a Wii Remote must still be connected), using the',
+    'gc': ['Play with a GameCube controller in port 1 (no Wii Remote needed), using the',
            'original GameCube game\'s controls: stick moves and aims, C stick swarms, X dismiss, Y switch leader.'],
 }
 COMBINED_WARNING = []

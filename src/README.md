@@ -8,6 +8,9 @@ generators that place them.
 | `macros.s` | assembler macros shared by the routines |
 | `cc_sample.s` | Classic Controller sample -> Wii Remote + Nunchuk sample (KPAD sampling callback) |
 | `gc_sample.s` | GameCube pad -> Wii Remote + Nunchuk sample (KPAD sampling callback) |
+| `gc_convert.s` | the conversion itself, shared by `gc_sample.s` and `gc_synth.s` |
+| `gc_synth.s` | with no Wii Remote: make the sample from the pad and announce the controller (KPAD read) |
+| `gc_probe.s` | `WPADProbe` wrapper: a GameCube pad counts as a connected controller |
 | `pointer.s` | pointer from a stick, written into KPAD's output (KPAD read loop); used by both patches |
 | `gen_common.py` | site addresses, button tables and the code shared by the two builders |
 | `gen_cc.py` `gen_gc.py` | build one feature for one release from a retail `main.dol` |

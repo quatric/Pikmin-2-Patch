@@ -113,6 +113,29 @@ input becomes the Wii input that does the same thing in this game:
 Holding A means a Pikmin is in hand (pressing holds, releasing throws), so A is
 the stateless proxy that separates the GameCube D-pad's two jobs.
 
+## Playing with no Wii Remote
+
+The Wii Remote is normally what makes the game's controller exist: its sampling
+callback fills KPAD's ring and fires the game's connect callback, and
+`WPADProbe` ("is a controller connected?") reports it. The GameCube patch adds two
+hooks so a pad alone is enough:
+
+- **`WPADProbe` wrapper** (`gc_probe.s`, entry `0x80149A44`): runs the real function
+  (the displaced `stwu` opens its frame, the call continues at the second
+  instruction and returns to the wrapper). If it says "no controller" (-1) and
+  a pad answers on the channel's port, it says connected (0) with extension type 1
+  instead. The game asks in many places (boot, the controller scan, every frame's
+  connection check), so wrapping the function covers them all.
+- **Ring filler** (`gc_synth.s`, KPAD read at `0x8018D85C`, the read of the ring's
+  sample count): with a remote the count is never zero; if it is, and a pad answers, the
+  routine zeroes the next ring slot, converts the pad into it with the same code
+  as the callback hook (`gc_convert.s`), and advances the ring index and count
+  as the callback would. The first time it also calls the game's connect callback
+  (`status +0x4D8`, flags `+0x522/+0x523`), exactly as the sampling callback does
+  for a real remote — that call is what makes the game start using the controller.
+
+With a remote connected neither hook changes anything.
+
 ## The pointer hook
 
 A Nunchuk sample has no IR data, so KPAD reports no pointer and the game would
@@ -132,7 +155,7 @@ Both reach their displaced branch through an absolute jump.
 ## Other releases
 
 The KPAD library is the same code in every release (`RVL_SDK - KPAD` build Aug 8
-2007), but moved. The four sites were carried over by masked-signature search
+2007), but moved. The sites were carried over by masked-signature search
 (`tools/sig.py`, which ignores branch targets and address-sized immediates and
 demands exactly one match):
 
@@ -142,6 +165,8 @@ demands exactly one match):
 | `addi r0,r28,1` | `0x8018E270` | `0x8018E6D0` | `0x8018E490` |
 | `bl` IR/geometry call | `0x8018DE10` | `0x8018E270` | `0x8018E030` |
 | `b` after it | `0x8018DE14` | `0x8018E274` | `0x8018E034` |
+| `lbz r0,0x10f(r31)` (ring count) | `0x8018D85C` | `0x8018DCBC` | `0x8018DA7C` |
+| `WPADProbe` entry | `0x80149A44` | `0x80149EA4` | `0x80149C64` |
 
 ## How it was tested
 
@@ -150,5 +175,5 @@ device presses buttons and moves sticks (Classic Controller on the emulated Wii
 Remote, GameCube pad on port 1): every button lands on the bit above, the
 sticks arrive as Nunchuk stick floats, and the pointer follows the right stick
 / C stick / control stick. The same checks pass on a disc image rebuilt by the
-patcher (no Gecko codes). `tools/verify.py` re-checks every site against retail
+patcher (no Gecko codes), and the GameCube pad works with no Wii Remote configured in Dolphin at all. `tools/verify.py` re-checks every site against retail
 DOLs. Nothing here has been run on a console.

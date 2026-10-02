@@ -25,6 +25,9 @@ SAMPLE_ADDI = 0x8018E270         # addi r0,r28,1      next instruction
 POINTER_BL = 0x8018DE10          # bl <per-sample IR/geometry>
 POINTER_B = 0x8018DE14           # b  <end of the sample's iteration>
 
+PROBE_ENTRY = 0x80149A44         # WPADProbe, first instruction (stwu r1,-0x10(r1))
+RING_COUNT = 0x8018D85C          # lbz r0,0x10f(r31)  KPAD read: samples waiting in the ring
+
 USA_DOL = None
 
 # Wii Remote / Nunchuk button bits (WPAD)
@@ -46,7 +49,10 @@ PTR_Y = -0.00060
 
 
 def read(name):
-    return open(os.path.join(HERE, name)).read()
+    out = []
+    for line in open(os.path.join(HERE, name)).read().split('\n'):
+        out.append(read(line.split()[1]) if line.startswith('#include ') else line)
+    return '\n'.join(out)
 
 
 def decode_branch(word, at):
@@ -78,3 +84,15 @@ def pointer_source(marker, prologue='', epilogue=''):
 def hook(site, orig, base, source, syms, consts, note):
     words = asm.words(asm.assemble(read('macros.s') + source, base, syms, consts)) + [0]
     return Hook(site, orig, words, base, note=note), (len(words) * 4 + 15) & ~15
+
+
+def gc_extra_sites(region, dol):
+    """Sites only the GameCube patch needs (it also works without a Wii Remote)."""
+    usa = USA_DOL if region != 'R92E01' else dol
+    out = {}
+    for key, (addr, before, after) in dict(probe=(PROBE_ENTRY, 0, 14), ring=(RING_COUNT, 12, 6)).items():
+        out[key] = addr if region == 'R92E01' else find_unique(usa, dol, addr, before, after)
+    w = {k: struct.unpack('>I', dol.read(a, 4))[0] for k, a in out.items()}
+    if w['probe'] != 0x9421FFF0 or w['ring'] != 0x881F010F:
+        raise SystemExit('%s: probe / ring sites are 0x%08X 0x%08X' % (region, w['probe'], w['ring']))
+    return out, w

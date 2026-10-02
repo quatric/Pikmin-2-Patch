@@ -92,7 +92,7 @@ python3 tools/patch_disc.py "Pikmin 2 (USA) (En,Fr,Es).wbfs" --cc --gc
 Copy `codes/<disc id>.ini` (`R92E01`, `R92P01` or `R92J01`) into Dolphin's
 `GameSettings` folder and enable the codes under **Properties → Gecko Codes**.
 The two codes are independent. Set GameCube Port 1 to a Standard Controller
-(for the GameCube patch) and boot with the Wii Remote connected.
+(for the GameCube patch). A Wii Remote is optional for the GameCube patch.
 
 The same codes are in `codes/<disc id>.txt` in the plain layout loaders read.
 
@@ -111,12 +111,16 @@ it for you.
 
 ## Limits
 
-- A Wii Remote must still be connected for each player (the GameCube patch
-  needs it as the console's link to the game). GameCube port 1 drives player 1.
+- The GameCube controller works with **no Wii Remote connected at all**; with one
+  connected, the remote's own buttons still work alongside the pad. GameCube
+  port 1 drives player 1.
+- Without a Wii Remote there is no HOME button (the HOME Menu belongs to the
+  remote) and no rumble.
 - Plug the GameCube controller in **before** starting the game; hot-plugging is
   not handled.
 - While a patched controller is in use, the Wii Remote's own pointer is ignored:
   the cursor follows the stick.
+- The Classic Controller still plugs into a Wii Remote, so that patch needs one.
 
 ## Repository layout
 

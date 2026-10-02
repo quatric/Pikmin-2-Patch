@@ -28,6 +28,15 @@ def build(region, dol):
                      'KPAD read loop: pointer from the sticks')
     ops.append(h)
     cur += size
+    ex, ew = g.gc_extra_sites(region, dol)
+    h, size = g.hook(ex['ring'], ew['ring'], cur, g.read('gc_synth.s'), {}, consts,
+                     'KPAD read: no Wii Remote, so make the sample from the GameCube pad')
+    ops.append(h)
+    cur += size
+    h, size = g.hook(ex['probe'], ew['probe'], cur, g.read('gc_probe.s'), {'PROBE_BODY': ex['probe'] + 4}, consts,
+                     'WPADProbe: a GameCube pad counts as a connected controller')
+    ops.append(h)
+    cur += size
     if cur > GC_END:
         raise SystemExit('gc code overflows its window: 0x%X > 0x%X' % (cur, GC_END))
     return Feature('gc', 'GameCube controller', region, ops)
